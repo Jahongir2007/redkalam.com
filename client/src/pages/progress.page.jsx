@@ -16,7 +16,7 @@ import {useAuth} from "../hooks/auth.hook.jsx";
 import DashboardSkeleton from "../components/ui/dashboard.skeleton.jsx";
 import {navigate} from "../Router.jsx";
 import UserNavbar from "../components/Navbar/usernavbar.jsx";
-import {serverHost} from "../config/serverhost.jsx";
+// import {serverHost} from "../config/serverhost.jsx";
 
 export default function ProgressPage() {
     const [loading, setLoading] = useState(false);
@@ -29,7 +29,7 @@ export default function ProgressPage() {
                 setLoading(true);
                 const userToken = localStorage.getItem("userToken");
 
-                const res = await fetch(`${serverHost}/api/user/progress`, {
+                const res = await fetch(`/api/user/progress`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",

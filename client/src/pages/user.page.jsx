@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import {useAuth} from "../hooks/auth.hook.jsx";
 import {navigate} from "../Router.jsx";
 import DashboardSkeleton from "../components/ui/dashboard.skeleton.jsx";
-import {serverHost} from "../config/serverhost.jsx";
+// import {serverHost} from "../config/serverhost.jsx";
 import {useState, useEffect} from "react";
 
 export default function UserDashboard() {
@@ -18,7 +18,7 @@ export default function UserDashboard() {
                 if (loading) return;
                 setLoading(true);
                 const userToken = localStorage.getItem("userToken") ?? "Unknown";
-                const res = await fetch(`${serverHost}/api/user/essay`, {
+                const res = await fetch(`/api/user/essay`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",

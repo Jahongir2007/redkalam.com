@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {jwtDecode} from "jwt-decode";
-import {serverHost} from "../config/serverhost.jsx";
+// import {serverHost} from "../config/serverhost.jsx";
 
 export function useAuth() {
     const [isAuth, setIsAuth] = useState(null);
@@ -22,7 +22,7 @@ export function useAuth() {
                 if(leftTime <= oneDayInSeconds){
                     const refreshUserToken = async () => {
                         try{
-                            const res = await fetch(`${serverHost}/api/token/refresh`, {
+                            const res = await fetch(`/api/token/refresh`, {
                                 method: "GET",
                                 headers: {
                                     "Content-Type": "application/json",

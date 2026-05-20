@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import Navbar from "../components/Navbar/Navbar.jsx";
 import Input from "../components/ui/input.jsx";
 import { Button } from "../components/ui/button.jsx";
-import {serverHost} from "../config/serverhost.jsx";
+// import {serverHost} from "../config/serverhost.jsx";
 import {navigate} from "../Router.jsx";
 
 export default function ResetPasswordPage() {
@@ -17,7 +17,7 @@ export default function ResetPasswordPage() {
             setLoading(true);
             const userEmailForPasswordChanging = localStorage.getItem("userEmailForPasswordChanging");
             // const decodedUserToken = jwtDecode(userToken);
-            const res = await fetch(`${serverHost}/api/auth/password/reset`, {
+            const res = await fetch(`/api/auth/password/reset`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

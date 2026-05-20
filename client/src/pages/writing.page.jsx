@@ -5,7 +5,7 @@ import {useAuth} from "../hooks/auth.hook.jsx";
 import DashboardSkeleton from "../components/ui/dashboard.skeleton.jsx";
 import {navigate} from "../Router.jsx";
 import UserNavbar from "../components/Navbar/usernavbar.jsx";
-import {serverHost} from "../config/serverhost.jsx";
+// import {serverHost} from "../config/serverhost.jsx";
 
 export default function WritePage() {
     const [essay, setEssay] = useState("");
@@ -56,7 +56,7 @@ export default function WritePage() {
 
             const userToken = localStorage.getItem("userToken") ?? 'Unknown';
 
-            const essayEvaluationRes = await fetch(`${serverHost}/api/user/essay/evaluate`, {
+            const essayEvaluationRes = await fetch(`/api/user/essay/evaluate`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

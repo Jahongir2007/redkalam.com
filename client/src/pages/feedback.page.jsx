@@ -1,7 +1,7 @@
 import { Card, CardContent } from "../components/ui/card.jsx";
 import UserNavbar from "../components/Navbar/usernavbar.jsx";
 import { useEffect, useState } from "react";
-import { serverHost } from "../config/serverhost.jsx";
+// import { serverHost } from "../config/serverhost.jsx";
 import DashboardSkeleton from "../components/ui/dashboard.skeleton.jsx";
 
 export default function FeedbackPage() {
@@ -16,7 +16,7 @@ export default function FeedbackPage() {
                 const params = new URLSearchParams(window.location.search);
                 const essayId = params.get("id");
 
-                const res = await fetch(`${serverHost}/api/user/essay/feedback/${essayId}`, {
+                const res = await fetch(`/api/user/essay/feedback/${essayId}`, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }

@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import Navbar from "../components/Navbar/Navbar.jsx";
 import Input from "../components/ui/input.jsx";
 import { Button } from "../components/ui/button.jsx";
-import {serverHost} from "../config/serverhost.jsx";
+// import {serverHost} from "../config/serverhost.jsx";
 import {navigate} from "../Router.jsx";
 import {useAuth} from "../hooks/auth.hook.jsx";
 import DashboardSkeleton from "../components/ui/dashboard.skeleton.jsx";
@@ -26,7 +26,7 @@ export default function RegisterPage() {
     const handleRegister = async () => {
         try{
             setLoading(true);
-            const res = await fetch(`${serverHost}/api/auth/register`, {
+            const res = await fetch(`/api/auth/register`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -54,7 +54,7 @@ export default function RegisterPage() {
 
     const handleRegisterWithGoogle = async () => {
         try {
-            window.location.href = `${serverHost}/api/auth/google`;
+            window.location.href = `/api/auth/google`;
         }catch(err){
             console.log("Error occured on handleRegisterWithGoogle():",err);
         }

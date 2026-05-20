@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import Navbar from "../components/Navbar/Navbar.jsx";
 import Input from "../components/ui/input.jsx";
 import { Button } from "../components/ui/button.jsx";
-import {serverHost} from "../config/serverhost.jsx";
+// import {serverHost} from "../config/serverhost.jsx";
 import {navigate} from "../Router.jsx";
 import {useAuth} from "../hooks/auth.hook.jsx";
 import OtpSkeleton from "../components/ui/otp.skeleton.jsx";
@@ -21,7 +21,7 @@ export default function ResendOtpVerificationPage() {
             try {
                 const userToken = localStorage.getItem("userToken");
 
-                const res = await fetch(`${serverHost}/api/auth/otp/verification/resend`, {
+                const res = await fetch(`/api/auth/otp/verification/resend`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -57,7 +57,7 @@ export default function ResendOtpVerificationPage() {
             setLoading(true);
             const userToken = localStorage.getItem("userToken");
             // const decodedUserToken = jwtDecode(userToken);
-            const res = await fetch(`${serverHost}/api/auth/otp/verification`, {
+            const res = await fetch(`/api/auth/otp/verification`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
