@@ -150,9 +150,7 @@ export default function WritePage() {
                                     </>
                                 )}
 
-                                Get feedback
-
-                                {/*{loading ? "Evaluating..." : "Get feedback"}*/}
+                                {loading ? "Evaluating..." : "Get feedback"}
                             </Button>
                         </div>
                     </CardContent>
