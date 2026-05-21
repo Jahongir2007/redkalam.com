@@ -21,16 +21,21 @@ export const userLogin = async (req, res, next) => {
     try{
         const { email, password } = req.body;
         if (!email || !password) {
-            return res.status(401).json(JSON.stringify({
+            return res.status(401).json({
                 message: "Email or/and password is/are not filled",
                 data: {
                     success: false,
                 }
-            }));
+            });
         }
 
-        const user = await getUserByEmailAndPassword(email, password);
-        return res.status(200).json(user);
+        const result = await getUserByEmailAndPassword(email, password);
+
+        if (!result.success) {
+            return res.status(401).json(result);
+        }
+
+        return res.status(200).json(result);
     }catch(err){
         next(err);
     }
