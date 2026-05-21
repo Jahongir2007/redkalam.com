@@ -88,7 +88,7 @@ export const registerNewUserByEmail = async (username, email, password) => {
             `
         });
 
-        const hashedPassword = auth.crypto.hash(password);
+        const hashedPassword = await auth.crypto.hash(password);
         const newUser = new User({username, email, password: hashedPassword, otpCode: auth.otp.code});
         await newUser.save();
 
