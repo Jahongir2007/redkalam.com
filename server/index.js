@@ -29,6 +29,8 @@ export const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 dbConnection();
 
+app.set("trust proxy", 1);
+
 app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
