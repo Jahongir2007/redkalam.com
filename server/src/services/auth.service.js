@@ -54,6 +54,12 @@ export const getUserByEmailAndPassword = async (email, password) => {
         };
     }catch(err){
         console.log("Error occured on getUserByEmailAndPssword service". err);
+        return {
+            message: `Internal server error: ${err}`,
+            data: {
+                success: false
+            }
+        };
     }
 }
 
