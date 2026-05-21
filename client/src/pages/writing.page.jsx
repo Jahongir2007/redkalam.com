@@ -152,6 +152,12 @@ export default function WritePage() {
 
                                 {loading ? "Evaluating..." : "Get feedback"}
                             </Button>
+
+                            {loading && (
+                                <p className="text-sm text-gray-500 mt-2">
+                                    🧠 AI is analyzing your essay… this may take a few minutes
+                                </p>
+                            )}
                         </div>
                     </CardContent>
                 </Card>

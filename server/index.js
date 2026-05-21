@@ -58,3 +58,5 @@ export const google = auth.oauth.google({
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     redirectUri: process.env.GOOGLE_REDIRECT_URI
 });
+
+export const resendApiKey = process.env.RESEND_API_KEY;

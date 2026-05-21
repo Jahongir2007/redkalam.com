@@ -5,15 +5,14 @@ import AuthVerify from "auth-verify";
 import jwt from 'jsonwebtoken';
 
 const auth = new AuthVerify({});
+// import {resendApiKey} from "../../index.js";
 
 auth.otp.sender({
     via: "email",
-    service: "gmail",
-    sender: 'jahongir.nodirovich.2007@gmail.com',
-    pass: 'pvsw gujn lzsh vdsd',
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false
+    service: "api",
+    sender: 'noreply@redkalam.com',
+    apiService: 'resend',
+    apiKey: process.env.RESEND_API_KEY,
 });
 
 export const getUserByEmailAndPassword = async (email, password) => {
