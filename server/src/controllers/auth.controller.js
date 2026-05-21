@@ -31,7 +31,7 @@ export const userLogin = async (req, res, next) => {
 
         const result = await getUserByEmailAndPassword(email, password);
 
-        if (!result.success) {
+        if (!result.data.success) {
             return res.status(401).json(result);
         }
 
