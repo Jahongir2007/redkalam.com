@@ -13,6 +13,8 @@ import WritePage from "./pages/writing.page.jsx";
 import UserVerificationPage from "./pages/user.verification.page.jsx";
 import FeedbackPage from "./pages/feedback.page.jsx";
 import ProgressPage from "./pages/progress.page.jsx";
+import LeaderboardPage from "./pages/leaderboard.page.jsx";
+import ExampleFeedbackPage from "./pages/example.page.jsx";
 
 const routes = {
     "/": LandingPage,
@@ -29,6 +31,8 @@ const routes = {
     "/auth/google/callback": UserVerificationPage,
     "/feedback": FeedbackPage,
     "/progress": ProgressPage,
+    "/leaderboard": LeaderboardPage,
+    "/example": ExampleFeedbackPage
 };
 
 export default function App() {

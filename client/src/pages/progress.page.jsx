@@ -1,6 +1,4 @@
 import {
-    // BarChart,
-    // Bar,
     LineChart,
     Line,
     XAxis,
@@ -42,11 +40,43 @@ export default function ProgressPage() {
                     console.log(data);
                 }
 
-                console.log(data);
-                const chartData = data.data.scores.map(score => ({
-                    date: new Date(score.createdAt).toLocaleDateString(),
-                    overall: score.result.overall
-                }));
+                // console.log(data);
+                // const chartData = data.data.scores.map(score => ({
+                //     date: new Date(score.createdAt).toLocaleDateString(),
+                //     overall: score.result.overall
+                // }));
+                // setData(chartData);
+
+                const groupedScores = {};
+
+                data.data.scores.forEach(score => {
+
+                    const date =
+                        new Date(score.createdAt)
+                            .toLocaleDateString();
+
+                    if (!groupedScores[date]) {
+                        groupedScores[date] = {
+                            total: 0,
+                            count: 0
+                        };
+                    }
+
+                    groupedScores[date].total +=
+                        score.result?.overall || 0;
+
+                    groupedScores[date].count += 1;
+                });
+
+                const chartData = Object.entries(groupedScores)
+                    .map(([date, values]) => ({
+                        date,
+                        overall:
+                            (
+                                values.total / values.count
+                            ).toFixed(1)
+                    }));
+
                 setData(chartData);
             }catch (err){
                 console.log(err);

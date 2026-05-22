@@ -41,8 +41,8 @@ export default function LandingPage() {
                 </p>
 
                 <div className="mt-8 flex justify-center gap-4">
-                    <Button className="rounded-full px-6 py-2">Start Writing</Button>
-                    <Button variant="outline" className="rounded-full px-6 py-2">
+                    <Button className="rounded-full px-6 py-2" onClick={()=> navigate("/register")}>Start Writing</Button>
+                    <Button variant="outline" className="rounded-full px-6 py-2" onClick={()=> navigate("/example")}>
                         See Example
                     </Button>
                 </div>
@@ -94,7 +94,7 @@ export default function LandingPage() {
                 <p className="text-gray-600 mt-4">
                     Join thousands of students boosting their IELTS writing scores.
                 </p>
-                <Button className="mt-6 rounded-full px-6 py-2">
+                <Button className="mt-6 rounded-full px-6 py-2" onClick={()=> navigate("/register")}>
                     Try RedKalam Free
                 </Button>
             </section>

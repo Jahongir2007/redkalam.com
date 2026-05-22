@@ -5,7 +5,8 @@ import {
     essayEvaluation,
     getUserEssay,
     getEssayFeedbackById,
-    getUserIELTSScoreData
+    getUserIELTSScoreData,
+    getLeaderBoard
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
@@ -13,6 +14,7 @@ const router = express.Router();
 router.post('/essay/evaluate', authMiddleware, essayEvaluation);
 router.get('/essay', authMiddleware, getUserEssay);
 router.get('/essay/feedback/:id', authMiddleware, getEssayFeedbackById);
-router.get('/progress', authMiddleware, getUserIELTSScoreData)
+router.get('/progress', authMiddleware, getUserIELTSScoreData);
+router.get('/leaderboard', authMiddleware, getLeaderBoard);
 
 export default router;

@@ -1,5 +1,6 @@
-import {Essay} from '../models/essay.model.js'
-import {User} from '../models/user.model.js'
+import {Essay} from '../models/essay.model.js';
+import {User} from '../models/user.model.js';
+import {Leaderboard} from '../models/leaderboard.model.js';
 
 export const essayFeedbackSave = async (userId, topic, essay, aiResponse) => {
     try{
@@ -16,9 +17,37 @@ export const essayFeedbackSave = async (userId, topic, essay, aiResponse) => {
 
         const newEssayEvaluation = new Essay({
             userId, topic, essay, result: aiResponse
-        })
+        });
 
         await newEssayEvaluation.save();
+
+        const userPreviousBestScore = await Leaderboard.findOne({ userId });
+
+        if(!userPreviousBestScore) {
+            const newBestScore = new Leaderboard({
+                userId, username: userExists.username, bestEssayId: newEssayEvaluation._id, bestScore: aiResponse.overall,
+            })
+
+            await newBestScore.save();
+        }else{
+            if(userPreviousBestScore.bestScore >= aiResponse.overall) {
+                return {
+                    message: `Essay feedback successfully saved.`,
+                    data: {
+                        success: true
+                    }
+                };
+            }else{
+                await Leaderboard.findOneAndUpdate({userId}, {bestEssayId: newEssayEvaluation._id, bestScore: aiResponse.overall}, {new: true});
+
+                return {
+                    message: `Essay feedback successfully saved.`,
+                    data: {
+                        success: true
+                    }
+                };
+            }
+        }
 
         return {
             message: `Essay feedback successfully saved.`,
@@ -126,5 +155,35 @@ export const getUserIELTSScores = async (userId) => {
         }
     }catch(err){
         console.error("Error on getUserIELTSScores",err);
+    }
+}
+
+export const getLeaderBoardFromDb = async () => {
+    try{
+        const leaderboard = await Leaderboard.find().lean().select("username bestScore").sort({ bestScore: -1 }).limit(10);
+        if(leaderboard.length === 0){
+            return {
+                message: 'Leaderboard not found',
+                data: {
+                    success: false,
+                }
+            }
+        }
+
+        return {
+            message: 'Leaderboard successfully found.',
+            data: {
+                success: true,
+                leaderboard
+            }
+        }
+    }catch(err){
+        console.error("Error on getLeaderBoardFromDb",err);
+        return {
+            message: `Error on getting leader board from Db: ${err}`,
+            data: {
+                success: false,
+            }
+        };
     }
 }

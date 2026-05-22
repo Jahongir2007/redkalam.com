@@ -3,7 +3,8 @@ import {
     essayFeedbackSave,
     getUserEssayAndFeedbackById,
     getEssayFeedbackByIdFromDb,
-    getUserIELTSScores
+    getUserIELTSScores,
+    getLeaderBoardFromDb
 } from "../services/user.service.js";
 
 const EVALUATOR_SYSTEM = `You are a certified IELTS Writing Task 2 examiner.
@@ -119,6 +120,16 @@ export const getUserIELTSScoreData = async (req, res, next) => {
         const getUserIELTSScoresFromDb = await getUserIELTSScores(userId);
 
         return res.json(getUserIELTSScoresFromDb);
+    }catch(err){
+        next(err);
+    }
+}
+
+export const getLeaderBoard = async (req, res, next) => {
+    try {
+        const {userId} = req.user;
+        const leaderBoard = await getLeaderBoardFromDb();
+        return res.json(leaderBoard);
     }catch(err){
         next(err);
     }

@@ -46,7 +46,7 @@ export default function WritePage() {
     const handleSubmit = async () => {
         try{
             setLoading(true);
-            console.log("Essay:", essay);
+            // console.log("Essay:", essay);
             // send to backend / AI
 
             if(wordCount < 50){
@@ -101,11 +101,11 @@ export default function WritePage() {
                 {/* Card */}
                 <Card className="mt-10 rounded-2xl shadow-sm">
 
-                    {wordCount > 300 && (
-                        <p className="text-red-500 text-sm mt-2 m-3 p-3">
-                            Essay is too long. Recommended: 250–300 words.
-                        </p>
-                    )}
+                    {/*{wordCount > 300 && (*/}
+                    {/*    <p className="text-red-500 text-sm mt-2 m-3 p-3">*/}
+                    {/*        Essay is too long. Recommended: 250–300 words.*/}
+                    {/*    </p>*/}
+                    {/*)}*/}
 
                     {sufficientWordCount && (
                         <p className="text-red-500 text-sm mt-2 m-3 p-3">
@@ -146,13 +146,14 @@ export default function WritePage() {
                             >
                                 {loading && (
                                     <>
-                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Evaluating...
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                                     </>
                                 )}
 
                                 {loading ? "Evaluating..." : "Get feedback"}
                             </Button>
-
+                        </div>
+                        <div>
                             {loading && (
                                 <p className="text-sm text-gray-500 mt-2">
                                     🧠 AI is analyzing your essay… this may take a few minutes

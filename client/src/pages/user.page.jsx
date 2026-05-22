@@ -30,9 +30,10 @@ export default function UserDashboard() {
                     console.log("Error getting user essay data.", data);
                 }
 
-                console.log(data);
+                // console.log(data);
                 if(data.message === "Essays and feedbacks successfully found." && data.data.success){
                     setEssays(data.data.userEssay);
+                    // console.log("Best score", bestScore);
                 }else if(data.message === "Essay not found" && !data.data.success){
                     setEssays([]);
                 }
@@ -45,6 +46,7 @@ export default function UserDashboard() {
 
         getUserEssaysAndFeedbacks();
     }, [])
+
     const isAuth = useAuth();
 
     if (isAuth === null) return <DashboardSkeleton />;
@@ -128,6 +130,30 @@ export default function UserDashboard() {
                 </Button>
                 <Button variant="outline" className="rounded-full px-6 py-2" onClick={()=> navigate("/progress")}>
                     📊 View Progress
+                </Button>
+                <Button
+                    variant="outline"
+                    className="relative rounded-full px-6 py-2"
+                    onClick={() => navigate("/leaderboard")}
+                >
+                    🏆 Leaderboard
+
+                    <span
+                        className="
+                            absolute
+                            -top-2
+                            -right-2
+                            bg-red-500
+                            text-white
+                            text-[10px]
+                            px-2
+                            py-[2px]
+                            rounded-full
+                            font-bold
+                        "
+                                    >
+                        NEW
+                    </span>
                 </Button>
             </section>
 
