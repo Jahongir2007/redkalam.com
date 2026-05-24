@@ -15,6 +15,7 @@ import FeedbackPage from "./pages/feedback.page.jsx";
 import ProgressPage from "./pages/progress.page.jsx";
 import LeaderboardPage from "./pages/leaderboard.page.jsx";
 import ExampleFeedbackPage from "./pages/example.page.jsx";
+import NotFoundPage from "./pages/notfound.jsx";
 
 const routes = {
     "/": LandingPage,
@@ -32,7 +33,8 @@ const routes = {
     "/feedback": FeedbackPage,
     "/progress": ProgressPage,
     "/leaderboard": LeaderboardPage,
-    "/example": ExampleFeedbackPage
+    "/example": ExampleFeedbackPage,
+    "/404": NotFoundPage,
 };
 
 export default function App() {
