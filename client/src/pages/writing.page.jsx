@@ -85,6 +85,44 @@ export default function WritePage() {
         }
     };
 
+    const handlePDFFileDownload = async (essayId) => {
+        try{
+            const userToken = localStorage.getItem("userToken") ?? 'Unknown';
+            const res = await fetch(`/api/user/essay/feedback/${essayId}/download/pdf`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${userToken}`
+                }
+            });
+
+            // const data = await res.json();
+            // const text = await res.text();
+            // console.log("Response of handlePDFFileDownload()", data);
+            // console.log("Response of handlePDFFileDownload()", text);
+            if(!res.ok){
+                console.log("Essay feedback pdf download res data", res);
+            }
+
+            const blob = await res.blob(); // ✅
+
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+
+            a.href = url;
+            a.download = "essay-feedback.pdf";
+
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            window.URL.revokeObjectURL(url);
+        }catch(err){
+            console.error("Error occured on handlePDFFileDownload()",err);
+        }
+    }
+
     return (
         <div className="min-h-screen bg-white text-gray-900">
             <UserNavbar activePage={"writing"} />
@@ -164,7 +202,9 @@ export default function WritePage() {
                 </Card>
                 {result && (
                     <div className="mt-10 space-y-6">
-
+                        <div className="flex flex-row justify-end">
+                            <Button onClick={()=> handlePDFFileDownload(result.essayId)} className="rounded-full px-6 py-2">Download PDF</Button>
+                        </div>
                         {/* Overall Score */}
                         <Card className="rounded-2xl shadow-sm">
                             <CardContent className="p-8 text-center">

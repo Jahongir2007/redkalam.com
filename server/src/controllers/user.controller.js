@@ -4,7 +4,7 @@ import {
     getUserEssayAndFeedbackById,
     getEssayFeedbackByIdFromDb,
     getUserIELTSScores,
-    getLeaderBoardFromDb
+    getLeaderBoardFromDb, getEssayFeedbackFromDbForPDFFile
 } from "../services/user.service.js";
 
 const EVALUATOR_SYSTEM = `You are a certified IELTS Writing Task 2 examiner.
@@ -764,7 +764,7 @@ export const essayEvaluation = async (req, res, next) => {
         const result = JSON.parse(cleaned);
         const saveEssayEvaluation = await essayFeedbackSave(userId, prompt, essay, result);
         if(saveEssayEvaluation.message === "Essay feedback successfully saved." && saveEssayEvaluation.data.success){
-            res.json(result);
+            res.json({...result, essayId: saveEssayEvaluation.data.newEssayId});
         }else{
             return res.status(500).json({
                 message: saveEssayEvaluation.message,
@@ -817,6 +817,22 @@ export const getLeaderBoard = async (req, res, next) => {
         const leaderBoard = await getLeaderBoardFromDb();
         return res.json(leaderBoard);
     }catch(err){
+        next(err);
+    }
+}
+
+export const getEssayFeedbackPDFFile = async (req, res, next) => {
+    try{
+        const {id} = req.params;
+        const pdfBuffer = await getEssayFeedbackFromDbForPDFFile(id);
+
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `attachment; filename=essay-report-${new Date().toISOString().split('T')[0]}.pdf`);
+
+        console.log(pdfBuffer);
+        console.log(pdfBuffer?.length);
+        res.send(pdfBuffer);
+    }catch (err){
         next(err);
     }
 }

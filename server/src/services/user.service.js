@@ -1,6 +1,7 @@
 import {Essay} from '../models/essay.model.js';
 import {User} from '../models/user.model.js';
 import {Leaderboard} from '../models/leaderboard.model.js';
+import PDFDocument from "pdfkit";
 
 export const essayFeedbackSave = async (userId, topic, essay, aiResponse) => {
     try{
@@ -34,7 +35,8 @@ export const essayFeedbackSave = async (userId, topic, essay, aiResponse) => {
                 return {
                     message: `Essay feedback successfully saved.`,
                     data: {
-                        success: true
+                        success: true,
+                        newEssayId: newEssayEvaluation._id
                     }
                 };
             }else{
@@ -43,7 +45,8 @@ export const essayFeedbackSave = async (userId, topic, essay, aiResponse) => {
                 return {
                     message: `Essay feedback successfully saved.`,
                     data: {
-                        success: true
+                        success: true,
+                        newEssayId: newEssayEvaluation._id
                     }
                 };
             }
@@ -52,7 +55,8 @@ export const essayFeedbackSave = async (userId, topic, essay, aiResponse) => {
         return {
             message: `Essay feedback successfully saved.`,
             data: {
-                success: true
+                success: true,
+                newEssayId: newEssayEvaluation._id
             }
         };
     }catch(err){
@@ -185,5 +189,106 @@ export const getLeaderBoardFromDb = async () => {
                 success: false,
             }
         };
+    }
+}
+
+export const getEssayFeedbackFromDbForPDFFile = async (essayId) => {
+    try {
+        const essayFeedback = await Essay.findById(essayId).lean();
+
+        if(!essayFeedback) {
+            return {
+                message: 'Essay feedback not found',
+                data: {
+                    success: false,
+                }
+            }
+        }
+
+        const doc = new PDFDocument();
+
+        const chunks = [];
+
+        doc.on("data", chunk => chunks.push(chunk));
+
+        const pdfBuffer = await new Promise((resolve, reject) => {
+            doc.on("end", ()=> resolve(Buffer.concat(chunks)));
+
+            doc.on("error", reject);
+
+            // Header
+            doc.fontSize(14).text("Topic:", {underline: true});
+            doc.fontSize(12).text(essayFeedback.topic);
+
+            doc.moveDown();
+
+            // Essay
+            doc.fontSize(14).text("Essay:", { underline: true });
+            doc.fontSize(11).text(essayFeedback.essay);
+
+            doc.moveDown();
+
+            // Scores
+            doc.fontSize(14).text("Scores:", { underline: true });
+
+            const scores = essayFeedback.result.scores;
+
+            doc.fontSize(12)
+                .text(`Overall: ${essayFeedback.result.overall}`)
+                .text(`TR: ${scores.TR}`)
+                .text(`CC: ${scores.CC}`)
+                .text(`LR: ${scores.LR}`)
+                .text(`GRA: ${scores.GRA}`);
+
+            doc.moveDown();
+
+            // Feedback
+            doc.fontSize(14).text("Feedback:", { underline: true });
+
+            const feedback = essayFeedback.result.feedback;
+
+            for (const key in feedback) {
+                doc.moveDown(0.5);
+                // doc.fontSize(12).text(`${key}:`, { bold: true });
+                // doc.fontSize(11).text(feedback[key]);
+
+                doc.font("Helvetica-Bold").text(`${key}:`);
+                doc.font("Helvetica").text(feedback[key]);
+            }
+
+            doc.moveDown();
+
+            // Annotated issues
+            doc.fontSize(14).text("Annotated Issues:", { underline: true });
+
+            essayFeedback.result.annotated_issues.forEach((issue, i) => {
+                doc.moveDown(0.5);
+
+                doc.fontSize(11).text(`${i + 1}. Quote: ${issue.quote}`);
+                doc.text(`Issue: ${issue.issue}`);
+                doc.text(`Suggestion: ${issue.suggestion}`);
+            });
+
+            doc.moveDown();
+
+            // Summary
+            doc.fontSize(14).text("Summary:", { underline: true });
+            doc.fontSize(11).text(essayFeedback.result.summary);
+
+            doc.moveDown();
+
+            // Next Steps
+            doc.fontSize(14).text("Next Steps:", { underline: true });
+
+            essayFeedback.result.next_steps.forEach((step, i) => {
+                doc.fontSize(11).text(`${i + 1}. ${step}`);
+            });
+
+            doc.end();
+        });
+
+        return pdfBuffer;
+    }catch(err){
+        console.error("Error on getEssayFeedbackFromDbForPDFFile",err);
     }
 }

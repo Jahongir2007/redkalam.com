@@ -6,7 +6,7 @@ import {
     getUserEssay,
     getEssayFeedbackById,
     getUserIELTSScoreData,
-    getLeaderBoard
+    getLeaderBoard, getEssayFeedbackPDFFile
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
@@ -16,5 +16,6 @@ router.get('/essay', authMiddleware, getUserEssay);
 router.get('/essay/feedback/:id', authMiddleware, getEssayFeedbackById);
 router.get('/progress', authMiddleware, getUserIELTSScoreData);
 router.get('/leaderboard', authMiddleware, getLeaderBoard);
+router.get('/essay/feedback/:id/download/pdf', authMiddleware, getEssayFeedbackPDFFile);
 
 export default router;
