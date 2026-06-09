@@ -1,20 +1,20 @@
 import { useState, useEffect } from "react";
 import { Button } from "../components/ui/button.jsx";
 import { Card, CardContent } from "../components/ui/card.jsx";
-import {useAuth} from "../hooks/auth.hook.jsx";
-import DashboardSkeleton from "../components/ui/dashboard.skeleton.jsx";
+// import {useAuth} from "../hooks/auth.hook.jsx";
+// import DashboardSkeleton from "../components/ui/dashboard.skeleton.jsx";
 import {navigate} from "../Router.jsx";
-import UserNavbar from "../components/Navbar/usernavbar.jsx";
-import {Copy, Download} from "lucide-react";
+import Navbar from "../components/Navbar/Navbar.jsx";
 // import {serverHost} from "../config/serverhost.jsx";
+import { Copy } from "lucide-react";
 
-export default function WritePage() {
+export default function WriteAnonymouslyPage() {
     const [essay, setEssay] = useState("");
     const [topic, setTopic] = useState("");
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
     const [sufficientWordCount, setSufficientWordCount] = useState(false);
-    const isAuth = useAuth();
+    // const isAuth = useAuth();
 
     // Load draft
     useEffect(() => {
@@ -33,18 +33,18 @@ export default function WritePage() {
 
     // 👉 NOW you can do conditional returns safely
 
-    if (isAuth === null) return <DashboardSkeleton />;
-
-    if (!isAuth) {
-        navigate("/login");
-        return null;
-    }
+    // if (isAuth === null) return <DashboardSkeleton />;
+    //
+    // if (!isAuth) {
+    //     navigate("/login");
+    //     return null;
+    // }
 
     const wordCount = essay.trim()
         ? essay.trim().split(/\s+/).length
         : 0;
 
-    const handleSubmit = async () => {
+    const handleAnonymSubmit = async () => {
         try{
             setLoading(true);
             // console.log("Essay:", essay);
@@ -55,13 +55,13 @@ export default function WritePage() {
                 return;
             }
 
-            const userToken = localStorage.getItem("userToken") ?? 'Unknown';
+            // const userToken = localStorage.getItem("userToken") ?? 'Unknown';
 
-            const essayEvaluationRes = await fetch(`/api/user/essay/evaluate`, {
+            const anonymousEssayEvaluationRes = await fetch(`/api/user/essay/anonymous/evaluate`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${userToken}`
+                    // "Authorization": `Bearer ${userToken}`
                 },
                 body: JSON.stringify({
                     prompt: topic,
@@ -69,15 +69,15 @@ export default function WritePage() {
                 })
             });
 
-            const essayEvaluationResData = await essayEvaluationRes.json();
+            const anonymousEssayEvaluationResData = await anonymousEssayEvaluationRes.json();
 
-            if (!essayEvaluationRes.ok) {
-                console.log("Essay evaluation res data", essayEvaluationResData);
+            if (!anonymousEssayEvaluationRes.ok) {
+                console.log("Anonymous essay evaluation res data", anonymousEssayEvaluationResData);
             }
 
             // console.log(essayEvaluationResData);
 
-            setResult(essayEvaluationResData);
+            setResult(anonymousEssayEvaluationResData);
             localStorage.removeItem("essayDraft");
         }catch(err){
             console.error("Error occured on handleSubmit()",err);
@@ -85,44 +85,6 @@ export default function WritePage() {
             setLoading(false);
         }
     };
-
-    const handlePDFFileDownload = async (essayId) => {
-        try{
-            const userToken = localStorage.getItem("userToken") ?? 'Unknown';
-            const res = await fetch(`/api/user/essay/feedback/${essayId}/download/pdf`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${userToken}`
-                }
-            });
-
-            // const data = await res.json();
-            // const text = await res.text();
-            // console.log("Response of handlePDFFileDownload()", data);
-            // console.log("Response of handlePDFFileDownload()", text);
-            if(!res.ok){
-                console.log("Essay feedback pdf download res data", res);
-            }
-
-            const blob = await res.blob(); // ✅
-
-            const url = window.URL.createObjectURL(blob);
-
-            const a = document.createElement("a");
-
-            a.href = url;
-            a.download = "essay-feedback.pdf";
-
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-
-            window.URL.revokeObjectURL(url);
-        }catch(err){
-            console.error("Error occured on handlePDFFileDownload()",err);
-        }
-    }
 
     const handleCopyFeedback = async () => {
         if (!result) return;
@@ -135,28 +97,28 @@ export default function WritePage() {
             
             Scores:
             ${Object.entries(result.scores)
-            .map(([key, value]) => `${key}: ${value}`)
-            .join("\n")}
+                        .map(([key, value]) => `${key}: ${value}`)
+                        .join("\n")}
             
             Detailed Feedback:
             ${Object.entries(result.feedback)
-            .map(([key, value]) => `${key}:\n${value}`)
-            .join("\n\n")}
+                        .map(([key, value]) => `${key}:\n${value}`)
+                        .join("\n\n")}
             
             Improvements:
             ${result.annotated_issues
-            .map(
-                (issue, i) =>
-                    `${i + 1}. "${issue.quote}"
+                        .map(
+                            (issue, i) =>
+                                `${i + 1}. "${issue.quote}"
             Issue: ${issue.issue}
             Suggestion: ${issue.suggestion}`
-            )
-            .join("\n\n")}
+                        )
+                        .join("\n\n")}
             
             Next Steps:
             ${result.next_steps
-            .map((step, i) => `${i + 1}. ${step}`)
-            .join("\n")}
+                        .map((step, i) => `${i + 1}. ${step}`)
+                        .join("\n")}
         `;
 
         await navigator.clipboard.writeText(text);
@@ -164,9 +126,47 @@ export default function WritePage() {
         // alert("Copied to clipboard!");
     };
 
+    // const handlePDFFileDownload = async (essayId) => {
+    //     try{
+    //         const userToken = localStorage.getItem("userToken") ?? 'Unknown';
+    //         const res = await fetch(`/api/user/essay/feedback/${essayId}/download/pdf`, {
+    //             method: "GET",
+    //             headers: {
+    //                 "Content-Type": "application/json",
+    //                 "Authorization": `Bearer ${userToken}`
+    //             }
+    //         });
+    //
+    //         // const data = await res.json();
+    //         // const text = await res.text();
+    //         // console.log("Response of handlePDFFileDownload()", data);
+    //         // console.log("Response of handlePDFFileDownload()", text);
+    //         if(!res.ok){
+    //             console.log("Essay feedback pdf download res data", res);
+    //         }
+    //
+    //         const blob = await res.blob(); // ✅
+    //
+    //         const url = window.URL.createObjectURL(blob);
+    //
+    //         const a = document.createElement("a");
+    //
+    //         a.href = url;
+    //         a.download = "essay-feedback.pdf";
+    //
+    //         document.body.appendChild(a);
+    //         a.click();
+    //         a.remove();
+    //
+    //         window.URL.revokeObjectURL(url);
+    //     }catch(err){
+    //         console.error("Error occured on handlePDFFileDownload()",err);
+    //     }
+    // }
+
     return (
         <div className="min-h-screen bg-white text-gray-900">
-            <UserNavbar activePage={"writing"} />
+            <Navbar activePage={"writing"} />
 
             <section className="max-w-4xl mx-auto px-6 py-16">
                 {/* Title */}
@@ -219,7 +219,7 @@ export default function WritePage() {
                             </span>
 
                             <Button
-                                onClick={handleSubmit}
+                                onClick={handleAnonymSubmit}
                                 className="rounded-full px-6 py-2"
                                 disabled={wordCount < 50 || loading}
                             >
@@ -243,23 +243,19 @@ export default function WritePage() {
                 </Card>
                 {result && (
                     <div className="mt-10 space-y-6">
-                        <div className="flex justify-end gap-3">
+                        <div className="flex flex-row justify-end">
                             <Button
                                 onClick={handleCopyFeedback}
                                 className="rounded-full px-6 py-2 flex items-center gap-2"
                             >
                                 <Copy className="h-4 w-4" />
-                                <span>Copy Feedback</span>
-                            </Button>
-
-                            <Button
-                                onClick={() => handlePDFFileDownload(result.essayId)}
-                                className="rounded-full px-6 py-2 flex items-center gap-2"
-                            >
-                                <Download className="h-4 w-4" />
-                                <span>Download PDF</span>
+                                Copy Feedback
                             </Button>
                         </div>
+
+                        {/*<div className="flex flex-row justify-end">*/}
+                        {/*    <Button onClick={()=> handlePDFFileDownload(result.essayId)} className="rounded-full px-6 py-2">Download PDF</Button>*/}
+                        {/*</div>*/}
                         {/* Overall Score */}
                         <Card className="rounded-2xl shadow-sm">
                             <CardContent className="p-8 text-center">

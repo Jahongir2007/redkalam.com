@@ -778,6 +778,65 @@ export const essayEvaluation = async (req, res, next) => {
     }
 }
 
+export const anonymousEssayEvaluation = async (req, res, next) => {
+    try{
+        // const {userId} = req.user;
+        const {prompt, essay} = req.body;
+
+        if(!prompt){
+            return res.status(400).json({
+                message: "Topic is not sent by user",
+                data: {
+                    success: false
+                }
+            });
+        }
+
+        if (!essay || essay.split(/\s+/).length < 50) {
+            return res.status(400).json({
+                message: "Essay too short or not entered",
+                data: {
+                    success: false,
+                }
+            });
+        }
+
+        const msg = await client.messages.create({
+            model: "claude-sonnet-4-6",
+            max_tokens: 2000,
+            system: EVALUATOR_SYSTEM,
+            messages: [
+                { role: "user", content: `TASK PROMPT:\n${prompt}\n\nCANDIDATE ESSAY:\n${essay}` },
+            ],
+        });
+
+        const text = msg.content[0].type === "text" ? msg.content[0].text : "";
+        // const text = msg.content[0].type === "text" ? msg.content[0].text : "";
+
+// Strip ```json ... ``` or ``` ... ``` fences if present
+        const cleaned = text
+            .trim()
+            .replace(/^```(?:json)?\s*/i, "")  // remove opening fence
+            .replace(/\s*```$/, "");            // remove closing fence
+
+        const result = JSON.parse(cleaned);
+        // const saveEssayEvaluation = await essayFeedbackSave(userId, prompt, essay, result);
+        // if(saveEssayEvaluation.message === "Essay feedback successfully saved." && saveEssayEvaluation.data.success){
+        //     res.json({...result, essayId: saveEssayEvaluation.data.newEssayId});
+        // }else{
+        //     return res.status(500).json({
+        //         message: saveEssayEvaluation.message,
+        //         data: {
+        //             success: false
+        //         }
+        //     })
+        // }
+        return res.json({...result})
+    }catch(err){
+        next(err);
+    }
+}
+
 export const getUserEssay = async (req, res, next) => {
     try{
         const {userId} = req.user;

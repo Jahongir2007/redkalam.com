@@ -8,6 +8,7 @@ import {navigate} from "../Router.jsx";
 import {useAuth} from "../hooks/auth.hook.jsx";
 import DashboardSkeleton from "../components/ui/dashboard.skeleton.jsx";
 import GoogleButton from "../components/ui/googlebutton.jsx";
+import AnonymousButton from "../components/ui/anonymousbutton.jsx";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -110,6 +111,10 @@ export default function LoginPage() {
 
                         <div className="mt-3 mb-3">
                             <GoogleButton onClick={handleLoginWithGoogle} loading={loading}/>
+                        </div>
+
+                        <div className="mt-3 mb-3">
+                            <AnonymousButton onClick={()=> navigate("/writing/anonymously")} loading={loading}/>
                         </div>
 
                         <div className="text-center text-sm text-gray-500 mt-2">

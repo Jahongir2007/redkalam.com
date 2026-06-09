@@ -16,6 +16,7 @@ import ProgressPage from "./pages/progress.page.jsx";
 import LeaderboardPage from "./pages/leaderboard.page.jsx";
 import ExampleFeedbackPage from "./pages/example.page.jsx";
 import NotFoundPage from "./pages/notfound.jsx";
+import WriteAnonymouslyPage from "./pages/writinganonymously.page.jsx";
 
 const routes = {
     "/": LandingPage,
@@ -34,6 +35,7 @@ const routes = {
     "/progress": ProgressPage,
     "/leaderboard": LeaderboardPage,
     "/example": ExampleFeedbackPage,
+    "/writing/anonymously": WriteAnonymouslyPage,
     "/404": NotFoundPage,
 };
 

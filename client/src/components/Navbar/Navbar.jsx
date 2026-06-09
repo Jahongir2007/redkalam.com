@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link, navigate } from "../../Router.jsx";
 
-export default function Navbar() {
-    const [active, setActive] = useState("home");
+export default function Navbar({activePage}) {
+    const [active, setActive] = useState(activePage);
 
     const linkClass = (name) =>
         `px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 hover:bg-gray-100 hover:text-black ${

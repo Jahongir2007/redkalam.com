@@ -6,7 +6,7 @@ import {
     getUserEssay,
     getEssayFeedbackById,
     getUserIELTSScoreData,
-    getLeaderBoard, getEssayFeedbackPDFFile
+    getLeaderBoard, getEssayFeedbackPDFFile, anonymousEssayEvaluation
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
@@ -17,5 +17,6 @@ router.get('/essay/feedback/:id', authMiddleware, getEssayFeedbackById);
 router.get('/progress', authMiddleware, getUserIELTSScoreData);
 router.get('/leaderboard', authMiddleware, getLeaderBoard);
 router.get('/essay/feedback/:id/download/pdf', authMiddleware, getEssayFeedbackPDFFile);
+router.post('/essay/anonymous/evaluate', anonymousEssayEvaluation);
 
 export default router;
