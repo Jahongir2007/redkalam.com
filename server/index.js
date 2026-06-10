@@ -15,6 +15,8 @@ import authRouter from "./src/routes/auth.routes.js";
 import AuthVerify from "auth-verify";
 import Anthropic from "@anthropic-ai/sdk";
 import userRouter from "./src/routes/user.routes.js";
+import {Server} from "socket.io";
+import {subscriber} from "./src/config/redispubsub.js";
 
 const app = express();
 
@@ -48,7 +50,37 @@ app.use('/api/user', userRouter);
 
 app.use(errorHandler);
 
-app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
+const server = app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
+
+const io = new Server(server, {
+    cors: {
+        origin: "*"
+    }
+});
+
+subscriber.subscribe("essay-completed");
+
+subscriber.on("message", (channel, message) => {
+    if(channel === "essay-completed") {
+
+        const data = JSON.parse(message);
+
+        io.to(data.userId).emit(
+            "essay-completed",
+            data
+        );
+    }
+});
+
+io.on("connection", (socket) => {
+
+    console.log("Connected:", socket.id);
+
+    socket.on("join", (userId) => {
+        socket.join(userId);
+    });
+
+});
 
 console.log(process.env.JWT_SECRET ?? "undefined");
 console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID);

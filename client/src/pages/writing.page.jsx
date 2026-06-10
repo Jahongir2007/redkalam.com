@@ -7,6 +7,8 @@ import {navigate} from "../Router.jsx";
 import UserNavbar from "../components/Navbar/usernavbar.jsx";
 import {Copy, Download} from "lucide-react";
 // import {serverHost} from "../config/serverhost.jsx";
+import { socket } from "../socket.js";
+import {jwtDecode} from "jwt-decode";
 
 export default function WritePage() {
     const [essay, setEssay] = useState("");
@@ -15,6 +17,15 @@ export default function WritePage() {
     const [result, setResult] = useState(null);
     const [sufficientWordCount, setSufficientWordCount] = useState(false);
     const isAuth = useAuth();
+
+    const [user, setUser] = useState(jwtDecode(localStorage.getItem("userToken")));
+    useEffect(() => {
+        console.log("Decoded user:", user);
+
+        if(user?.userId){
+            socket.emit("join", user.userId);
+        }
+    }, [user]);
 
     // Load draft
     useEffect(() => {
@@ -30,6 +41,31 @@ export default function WritePage() {
             localStorage.setItem("essayDraft", essay);
         }
     }, [essay]);
+
+    useEffect(() => {
+
+        const handleEssayCompleted = (data) => {
+
+            console.log("Essay completed:", data);
+
+            setResult(data.result);
+
+            setLoading(false);
+        };
+
+        socket.on(
+            "essay-completed",
+            handleEssayCompleted
+        );
+
+        return () => {
+            socket.off(
+                "essay-completed",
+                handleEssayCompleted
+            );
+        };
+
+    }, []);
 
     // 👉 NOW you can do conditional returns safely
 
@@ -77,13 +113,18 @@ export default function WritePage() {
 
             // console.log(essayEvaluationResData);
 
-            setResult(essayEvaluationResData);
+            // setResult(essayEvaluationResData);
+            if(essayEvaluationResData.message === "Essay queued" && essayEvaluationResData.data.success){
+                setLoading(true);
+            }
             localStorage.removeItem("essayDraft");
+
         }catch(err){
             console.error("Error occured on handleSubmit()",err);
-        }finally {
-            setLoading(false);
         }
+        // finally {
+        //     setLoading(false);
+        // }
     };
 
     const handlePDFFileDownload = async (essayId) => {

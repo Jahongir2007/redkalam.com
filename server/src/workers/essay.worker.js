@@ -1,14 +1,24 @@
-import {client} from "../../index.js";
-import {essayQueue} from "../queues/essay.queue.js";
-import {
-    essayFeedbackSave,
-    getUserEssayAndFeedbackById,
-    getEssayFeedbackByIdFromDb,
-    getUserIELTSScores,
-    getLeaderBoardFromDb, getEssayFeedbackFromDbForPDFFile
-} from "../services/user.service.js";
+import { Worker } from "bullmq";
+import { redisConnection } from "../config/redis.js";
+import { client } from "../config/anthropic.js";
+import { essayFeedbackSave } from "../services/user.service.js";
+import {dbConnection} from "../config/db.js";
+import {publisher} from "../config/redispubsub.js";
 
-const EVALUATOR_SYSTEM = `You are a certified IELTS Writing Task 2 examiner.
+dbConnection();
+
+new Worker(
+    "essay-evaluation",
+    async (job) => {
+
+        const { userId, prompt, essay } = job.data;
+
+        console.log(
+            "Processing:",
+            job.id
+        );
+
+        const EVALUATOR_SYSTEM = `You are a certified IELTS Writing Task 2 examiner.
 Score the essay on the four official band descriptors, each 0–9 (allow half bands):
 - Task Response (TR)
 - Coherence and Cohesion (CC)
@@ -721,195 +731,80 @@ Respond ONLY with valid JSON in this exact shape, no prose, no markdown fences:
   "next_steps": ["concrete improvement 1", "concrete improvement 2", "concrete improvement 3"]
 }`;
 
-export const essayEvaluation = async (req, res, next) => {
-    try{
-        const {userId} = req.user;
-        const {prompt, essay} = req.body;
+        try{
+            console.log("Before Claude");
 
-        if(!prompt){
-            return res.status(400).json({
-                message: "Topic is not sent by user",
-                data: {
-                    success: false
-                }
+            const msg = await client.messages.create({
+                model: "claude-sonnet-4-6",
+                max_tokens: 2000,
+                system: EVALUATOR_SYSTEM,
+                messages: [
+                    { role: "user", content: `TASK PROMPT:\n${prompt}\n\nCANDIDATE ESSAY:\n${essay}` },
+                ],
             });
-        }
 
-        if (!essay || essay.split(/\s+/).length < 50) {
-            return res.status(400).json({
-                message: "Essay too short or not entered",
-                data: {
-                    success: false,
-                }
-            });
-        }
+            console.log("After Claude");
 
-//         const msg = await client.messages.create({
-//             model: "claude-sonnet-4-6",
-//             max_tokens: 2000,
-//             system: EVALUATOR_SYSTEM,
-//             messages: [
-//                 { role: "user", content: `TASK PROMPT:\n${prompt}\n\nCANDIDATE ESSAY:\n${essay}` },
-//             ],
-//         });
-//
-//         const text = msg.content[0].type === "text" ? msg.content[0].text : "";
-//         // const text = msg.content[0].type === "text" ? msg.content[0].text : "";
-//
-// // Strip ```json ... ``` or ``` ... ``` fences if present
-//         const cleaned = text
-//             .trim()
-//             .replace(/^```(?:json)?\s*/i, "")  // remove opening fence
-//             .replace(/\s*```$/, "");            // remove closing fence
-//
-//         const result = JSON.parse(cleaned);
-//         const saveEssayEvaluation = await essayFeedbackSave(userId, prompt, essay, result);
-//         if(saveEssayEvaluation.message === "Essay feedback successfully saved." && saveEssayEvaluation.data.success){
-//             res.json({...result, essayId: saveEssayEvaluation.data.newEssayId});
-//         }else{
-//             return res.status(500).json({
-//                 message: saveEssayEvaluation.message,
-//                 data: {
-//                     success: false
-//                 }
-//             })
-//         }
+            console.log("Before JSON Parse");
 
-        const job = await essayQueue.add(
-            "evaluate",
-            {
-                userId,
-                prompt,
-                essay
+            const text = msg.content[0].type === "text" ? msg.content[0].text : "";
+
+            const cleaned = text
+                .trim()
+                .replace(/^```(?:json)?\s*/i, "")  // remove opening fence
+                .replace(/\s*```$/, "");            // remove closing fence
+
+            const result = JSON.parse(cleaned);
+
+            console.log("After JSON Parse");
+
+            console.log("Before Save");
+
+            const saveEssayEvaluation = await essayFeedbackSave(userId, prompt, essay, result);
+            // if(saveEssayEvaluation.message === "Essay feedback successfully saved." && saveEssayEvaluation.data.success){
+            //     res.json({...result, essayId: saveEssayEvaluation.data.newEssayId});
+            // }else{
+            //     return res.status(500).json({
+            //         message: saveEssayEvaluation.message,
+            //         data: {
+            //             success: false
+            //         }
+            //     })
+            // }
+
+            console.log("After Save");
+            console.log(job.data);
+            console.log(saveEssayEvaluation.data.newEssayId);
+
+            if (!saveEssayEvaluation?.data?.success) {
+                throw new Error(
+                    saveEssayEvaluation?.message ||
+                    "Failed to save essay"
+                );
             }
-        );
 
-        return res.status(202).json({
-            message: "Essay queued",
-            data: {
-                success: true,
-                jobId: job.id
-            }
-        });
-    }catch(err){
-        next(err);
-    }
-}
+            await publisher.publish(
+                "essay-completed",
+                JSON.stringify({
+                    userId,
+                    essayId: saveEssayEvaluation.data.newEssayId,
+                    result
+                })
+            );
 
-export const anonymousEssayEvaluation = async (req, res, next) => {
-    try{
-        // const {userId} = req.user;
-        const {prompt, essay} = req.body;
-
-        if(!prompt){
-            return res.status(400).json({
-                message: "Topic is not sent by user",
-                data: {
-                    success: false
-                }
-            });
+            return {
+                essayId: saveEssayEvaluation.data.newEssayId
+            };
+        }catch (err) {
+            console.log("Error occured on worker thread:", err);
         }
-
-        if (!essay || essay.split(/\s+/).length < 50) {
-            return res.status(400).json({
-                message: "Essay too short or not entered",
-                data: {
-                    success: false,
-                }
-            });
-        }
-
-        const msg = await client.messages.create({
-            model: "claude-sonnet-4-6",
-            max_tokens: 2000,
-            system: EVALUATOR_SYSTEM,
-            messages: [
-                { role: "user", content: `TASK PROMPT:\n${prompt}\n\nCANDIDATE ESSAY:\n${essay}` },
-            ],
-        });
-
-        const text = msg.content[0].type === "text" ? msg.content[0].text : "";
         // const text = msg.content[0].type === "text" ? msg.content[0].text : "";
 
 // Strip ```json ... ``` or ``` ... ``` fences if present
-        const cleaned = text
-            .trim()
-            .replace(/^```(?:json)?\s*/i, "")  // remove opening fence
-            .replace(/\s*```$/, "");            // remove closing fence
 
-        const result = JSON.parse(cleaned);
-        // const saveEssayEvaluation = await essayFeedbackSave(userId, prompt, essay, result);
-        // if(saveEssayEvaluation.message === "Essay feedback successfully saved." && saveEssayEvaluation.data.success){
-        //     res.json({...result, essayId: saveEssayEvaluation.data.newEssayId});
-        // }else{
-        //     return res.status(500).json({
-        //         message: saveEssayEvaluation.message,
-        //         data: {
-        //             success: false
-        //         }
-        //     })
-        // }
-        return res.json({...result})
-    }catch(err){
-        next(err);
+
+    },
+    {
+        connection: redisConnection
     }
-}
-
-export const getUserEssay = async (req, res, next) => {
-    try{
-        const {userId} = req.user;
-        const getUserEssayFromDB = await getUserEssayAndFeedbackById(userId);
-
-        return res.json(getUserEssayFromDB);
-    }catch(err){
-        next(err);
-    }
-}
-
-export const getEssayFeedbackById = async (req, res, next) => {
-    try{
-        const {id} = req.params;
-        const getEssayFeedback = await getEssayFeedbackByIdFromDb(id);
-
-        return res.json(getEssayFeedback);
-    }catch(err){
-        next(err);
-    }
-}
-
-export const getUserIELTSScoreData = async (req, res, next) => {
-    try {
-        const {userId} = req.user;
-        const getUserIELTSScoresFromDb = await getUserIELTSScores(userId);
-
-        return res.json(getUserIELTSScoresFromDb);
-    }catch(err){
-        next(err);
-    }
-}
-
-export const getLeaderBoard = async (req, res, next) => {
-    try {
-        const {userId} = req.user;
-        const leaderBoard = await getLeaderBoardFromDb();
-        return res.json(leaderBoard);
-    }catch(err){
-        next(err);
-    }
-}
-
-export const getEssayFeedbackPDFFile = async (req, res, next) => {
-    try{
-        const {id} = req.params;
-        const pdfBuffer = await getEssayFeedbackFromDbForPDFFile(id);
-
-        res.setHeader("Content-Type", "application/pdf");
-        res.setHeader("Content-Disposition", `attachment; filename=essay-report-${new Date().toISOString().split('T')[0]}.pdf`);
-
-        console.log(pdfBuffer);
-        console.log(pdfBuffer?.length);
-        res.send(pdfBuffer);
-    }catch (err){
-        next(err);
-    }
-}
+);
