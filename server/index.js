@@ -54,7 +54,9 @@ const server = app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 
 const io = new Server(server, {
     cors: {
-        origin: "*"
+        origin: "https://redkalam.com",
+        methods: ["GET", "POST"],
+        credentials: true
     }
 });
 
