@@ -1,8 +1,7 @@
 import dotenv from "dotenv";
-import path from "path";
 
 dotenv.config({
-    path: path.resolve("server/.env")
+    path: "/var/www/redkalam/server/.env"
 });
 import Anthropic from "@anthropic-ai/sdk";
 
