@@ -22,7 +22,7 @@ export default function UserDashboard() {
                 if (loading) return;
                 setLoading(true);
                 const userToken = localStorage.getItem("userToken") ?? "Unknown";
-                const res = await fetch(`$/api/user/essay?page=${page}&limit=${LIMIT}`, {
+                const res = await fetch(`/api/user/essay?page=${page}&limit=${LIMIT}`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
