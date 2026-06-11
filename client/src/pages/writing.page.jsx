@@ -20,7 +20,7 @@ export default function WritePage() {
 
     const [user, setUser] = useState(jwtDecode(localStorage.getItem("userToken")));
     useEffect(() => {
-        console.log("Decoded user:", user);
+        // console.log("Decoded user:", user);
 
         if(user?.userId){
             socket.emit("join", user.userId);

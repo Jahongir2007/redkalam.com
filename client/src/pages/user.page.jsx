@@ -74,6 +74,10 @@ export default function UserDashboard() {
 
     const handleLoadMoreEssays = async () => {
         try{
+            if(loadingMore){
+                return;
+            }
+
             setLoadingMore(true);
             const nextPage = page + 1;
             setPage(nextPage);
