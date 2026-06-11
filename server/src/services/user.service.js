@@ -64,7 +64,7 @@ export const essayFeedbackSave = async (userId, topic, essay, aiResponse) => {
     }
 }
 
-export const getUserEssayAndFeedbackById = async (userId) => {
+export const getUserEssayAndFeedbackById = async (userId, limit, page) => {
     try{
         const user = await User.findById(userId).lean();
         if (!user) {
@@ -76,7 +76,7 @@ export const getUserEssayAndFeedbackById = async (userId) => {
             }
         }
 
-        const userEssay = await Essay.find({userId});
+        const userEssay = await Essay.find({userId}).sort({ createdAt: -1 }).limit(limit).skip((page - 1) * limit).lean();
         if (userEssay.length === 0) {
             return {
                 message: 'Essay not found',

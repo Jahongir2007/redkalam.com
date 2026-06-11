@@ -858,7 +858,9 @@ export const anonymousEssayEvaluation = async (req, res, next) => {
 export const getUserEssay = async (req, res, next) => {
     try{
         const {userId} = req.user;
-        const getUserEssayFromDB = await getUserEssayAndFeedbackById(userId);
+        const limit = Math.min(Number(req.query.limit) || 5, 10);
+        const page = Math.max(Number(req.query.page) || 1, 1);
+        const getUserEssayFromDB = await getUserEssayAndFeedbackById(userId, limit, page);
 
         return res.json(getUserEssayFromDB);
     }catch(err){

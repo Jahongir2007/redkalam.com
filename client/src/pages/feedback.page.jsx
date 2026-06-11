@@ -3,18 +3,20 @@ import UserNavbar from "../components/Navbar/usernavbar.jsx";
 import { useEffect, useState } from "react";
 // import { serverHost } from "../config/serverhost.jsx";
 import DashboardSkeleton from "../components/ui/dashboard.skeleton.jsx";
+import {Copy, Download} from "lucide-react";
+import {Button} from "../components/ui/button.jsx";
 
 export default function FeedbackPage() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const params = new URLSearchParams(window.location.search);
+    const essayId = params.get("id");
+
     useEffect(() => {
         const fetchFeedback = async () => {
             try {
-                const token = localStorage.getItem("userToken");
-
-                const params = new URLSearchParams(window.location.search);
-                const essayId = params.get("id");
+                const token = localStorage.getItem("userToken") ?? "Unknown";
 
                 const res = await fetch(`/api/user/essay/feedback/${essayId}`, {
                     headers: {
@@ -49,6 +51,84 @@ export default function FeedbackPage() {
 
     const { result, essay, topic } = data;
 
+    const handlePDFFileDownload = async (essayId) => {
+        try{
+            const userToken = localStorage.getItem("userToken") ?? 'Unknown';
+            const res = await fetch(`/api/user/essay/feedback/${essayId}/download/pdf`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${userToken}`
+                }
+            });
+
+            // const data = await res.json();
+            // const text = await res.text();
+            // console.log("Response of handlePDFFileDownload()", data);
+            // console.log("Response of handlePDFFileDownload()", text);
+            if(!res.ok){
+                console.log("Essay feedback pdf download res data", res);
+            }
+
+            const blob = await res.blob(); // ✅
+
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+
+            a.href = url;
+            a.download = "essay-feedback.pdf";
+
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            window.URL.revokeObjectURL(url);
+        }catch(err){
+            console.error("Error occured on handlePDFFileDownload()",err);
+        }
+    }
+
+    const handleCopyFeedback = async () => {
+        if (!result) return;
+
+        const text = `
+            Overall IELTS Band: ${result?.overall}
+            
+            Summary:
+            ${result?.summary}
+            
+            Scores:
+            ${Object.entries(result?.scores)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join("\n")}
+            
+            Detailed Feedback:
+            ${Object.entries(result?.feedback)
+            .map(([key, value]) => `${key}:\n${value}`)
+            .join("\n\n")}
+            
+            Improvements:
+            ${result?.annotated_issues
+            .map(
+                (issue, i) =>
+                    `${i + 1}. "${issue?.quote}"
+            Issue: ${issue?.issue}
+            Suggestion: ${issue?.suggestion}`
+            )
+            .join("\n\n")}
+            
+            Next Steps:
+            ${result?.next_steps
+            .map((step, i) => `${i + 1}. ${step}`)
+            .join("\n")}
+        `;
+
+        await navigator.clipboard.writeText(text);
+
+        // alert("Copied to clipboard!");
+    };
+
     return (
         <div className="min-h-screen bg-white text-gray-900">
             <UserNavbar activePage={"feedback"} />
@@ -62,6 +142,24 @@ export default function FeedbackPage() {
                 <p className="text-gray-500 text-center mt-2">
                     AI analysis of your IELTS writing performance
                 </p>
+
+                <div className="flex justify-end gap-3 mt-3 mb-3">
+                    <Button
+                        onClick={handleCopyFeedback}
+                        className="rounded-full px-6 py-2 flex items-center gap-2"
+                    >
+                        <Copy className="h-4 w-4" />
+                        <span>Copy Feedback</span>
+                    </Button>
+
+                    <Button
+                        onClick={() => handlePDFFileDownload(essayId)}
+                        className="rounded-full px-6 py-2 flex items-center gap-2"
+                    >
+                        <Download className="h-4 w-4" />
+                        <span>Download PDF</span>
+                    </Button>
+                </div>
 
                 {/* BIG SCORE CARD */}
                 <Card className="mt-10 rounded-2xl shadow-sm">

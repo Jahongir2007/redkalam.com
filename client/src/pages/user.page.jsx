@@ -11,6 +11,10 @@ import {useState, useEffect} from "react";
 export default function UserDashboard() {
     const [essays, setEssays] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const LIMIT = 5;
+    const [loadingMore, setLoadingMore] = useState(false);
 
     useEffect(() => {
         const getUserEssaysAndFeedbacks = async () => {
@@ -18,7 +22,7 @@ export default function UserDashboard() {
                 if (loading) return;
                 setLoading(true);
                 const userToken = localStorage.getItem("userToken") ?? "Unknown";
-                const res = await fetch(`/api/user/essay`, {
+                const res = await fetch(`$/api/user/essay?page=${page}&limit=${LIMIT}`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
@@ -32,10 +36,22 @@ export default function UserDashboard() {
 
                 // console.log(data);
                 if(data.message === "Essays and feedbacks successfully found." && data.data.success){
+                    console.log({
+                        page,
+                        limit: LIMIT,
+                        skip: (page - 1) * LIMIT
+                    });
+                    // setEssays(prev => [...prev, ...data.data.userEssay]);
                     setEssays(data.data.userEssay);
                     // console.log("Best score", bestScore);
-                }else if(data.message === "Essay not found" && !data.data.success){
+
+                    if (data.data.userEssay.length < LIMIT) {
+                        setHasMore(false);
+                    }
+                }else if(page === 1 && data.message === "Essay not found" && !data.data.success){
                     setEssays([]);
+                }else if(page !== 1 && data.message === "Essay not found" && !data.data.success){
+                    setHasMore(false);
                 }
             }catch(err){
                 console.log("Error on getUserEssaysAndFeedbacks",err);
@@ -45,7 +61,7 @@ export default function UserDashboard() {
         }
 
         getUserEssaysAndFeedbacks();
-    }, [])
+    }, []);
 
     const isAuth = useAuth();
 
@@ -54,6 +70,56 @@ export default function UserDashboard() {
     if (!isAuth) {
         navigate("/login");
         return null;
+    }
+
+    const handleLoadMoreEssays = async () => {
+        try{
+            setLoadingMore(true);
+            const nextPage = page + 1;
+            setPage(nextPage);
+            const userToken = localStorage.getItem("userToken") ?? "Unknown";
+            const res = await fetch(`/api/user/essay?page=${nextPage}&limit=${LIMIT}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${userToken}`
+                }
+            });
+
+            const data = await res.json();
+            if(!res.ok){
+                console.log("Error loading more user essay data.", data);
+            }
+
+            if(data.message === "Essays and feedbacks successfully found." && data.data.success){
+                console.log({
+                    page,
+                    limit: LIMIT,
+                    skip: (page - 1) * LIMIT
+                });
+                // setEssays(prev => [...prev, ...data.data.userEssay]);
+                setEssays(prev => {
+                    const combined = [...prev, ...data.data.userEssay];
+
+                    return Array.from(
+                        new Map(combined.map(item => [item._id, item])).values()
+                    );
+                });
+                // console.log("Best score", bestScore);
+
+                if (data.data.userEssay.length < LIMIT) {
+                    setHasMore(false);
+                }
+            }else if(page === 1 && data.message === "Essay not found" && !data.data.success){
+                setEssays([]);
+            }else if(page !== 1 && data.message === "Essay not found" && !data.data.success){
+                setHasMore(false);
+            }
+        }catch(err){
+            console.log("Error loading more user essay data", err);
+        }finally {
+            setLoadingMore(false);
+        }
     }
 
     // const essays = [
@@ -94,8 +160,8 @@ export default function UserDashboard() {
             {/* Stats */}
             <section className="px-6 max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
                 {[
-                    { title: "Total Essays", value: essays.length},
-                    { title: "Average Score", value: essays.length
+                    { title: `Total Essays`, value: essays.length},
+                    { title: `Average Score`, value: essays.length
                             ? (
                                 essays.reduce(
                                     (acc, essay) =>
@@ -104,7 +170,7 @@ export default function UserDashboard() {
                                 ) / essays.length
                             ).toFixed(1)
                             : 0 },
-                    { title: "Best Score", value: essays.length
+                    { title: `Best Score`, value: essays.length
                             ? Math.max(
                                 ...essays.map(
                                     e => e.result?.overall || 0
@@ -202,6 +268,19 @@ export default function UserDashboard() {
                         ))}
                     </div>
                 )}
+                <div className="mb-3 mt-3">
+                    {hasMore && (
+                        <Button onClick={handleLoadMoreEssays} className="rounded-full px-6 py-2">
+                            {loadingMore && (
+                                <>
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                </>
+                            )}
+
+                            Load More
+                        </Button>
+                    )}
+                </div>
             </section>
 
             {/* Footer */}
