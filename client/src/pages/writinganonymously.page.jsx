@@ -40,6 +40,27 @@ export default function WriteAnonymouslyPage() {
     //     return null;
     // }
 
+    const loadingMessages = [
+        "Analyzing your essay...",
+        "Checking grammar...",
+        "Evaluating vocabulary...",
+        "Calculating band score..."
+    ];
+
+    const [messageIndex, setMessageIndex] = useState(0);
+
+    useEffect(() => {
+        if (!loading) return;
+
+        const interval = setInterval(() => {
+            setMessageIndex(prev =>
+                (prev + 1) % loadingMessages.length
+            );
+        }, 2000);
+
+        return () => clearInterval(interval);
+    }, [loading]);
+
     const wordCount = essay.trim()
         ? essay.trim().split(/\s+/).length
         : 0;
@@ -235,7 +256,7 @@ export default function WriteAnonymouslyPage() {
                         <div>
                             {loading && (
                                 <p className="text-sm text-gray-500 mt-2">
-                                    🧠 AI is analyzing your essay… this may take a few minutes
+                                    {loadingMessages[messageIndex]}
                                 </p>
                             )}
                         </div>

@@ -52,9 +52,12 @@ app.use(errorHandler);
 
 const server = app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 
+
+// https://redkalam.com
+// http://localhost:3000
 const io = new Server(server, {
     cors: {
-        origin: "https://redkalam.com",
+        origin: "http://localhost:3000",
         methods: ["GET", "POST"],
         credentials: true
     }

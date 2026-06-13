@@ -70,6 +70,27 @@ export default function WritePage() {
 
     }, []);
 
+    const loadingMessages = [
+        "Analyzing your essay...",
+        "Checking grammar...",
+        "Evaluating vocabulary...",
+        "Calculating band score..."
+    ];
+
+    const [messageIndex, setMessageIndex] = useState(0);
+
+    useEffect(() => {
+        if (!loading) return;
+
+        const interval = setInterval(() => {
+            setMessageIndex(prev =>
+                (prev + 1) % loadingMessages.length
+            );
+        }, 2000);
+
+        return () => clearInterval(interval);
+    }, [loading]);
+
     // 👉 NOW you can do conditional returns safely
 
     if (isAuth === null) return <DashboardSkeleton />;
@@ -279,7 +300,7 @@ export default function WritePage() {
                         <div>
                             {loading && (
                                 <p className="text-sm text-gray-500 mt-2">
-                                    🧠 AI is analyzing your essay… this may take a few minutes
+                                    {loadingMessages[messageIndex]}
                                 </p>
                             )}
                         </div>
